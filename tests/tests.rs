@@ -13,7 +13,7 @@ fn primary() {
             Station {
                 icao_code: "EHLE",
                 name: "Lelystad Airport".to_owned(),
-                country: "Germany".to_owned(),
+                country: "Netherlands".to_owned(),
             },
             input,
             0..4,
