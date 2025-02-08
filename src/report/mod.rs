@@ -5,6 +5,10 @@ use crate::{
     units::{Hectopascal, Knots, Meters},
 };
 
+mod kind;
+
+pub use kind::ReportKind;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
     pub origin: &'a str,
@@ -20,12 +24,6 @@ pub struct Report<'a> {
     pub temperature: Annotated<'a, i32>,
     pub dew_point: Annotated<'a, i32>,
     pub pressure: Annotated<'a, Hectopascal>,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum ReportKind {
-    Metar,
-    Speci,
 }
 
 #[derive(Debug, PartialEq, Eq)]

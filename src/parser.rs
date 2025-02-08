@@ -94,3 +94,8 @@ impl<'a> Parser<'a> {
         Ok(report)
     }
 }
+
+pub trait Parse<'a>: Sized {
+    type Err;
+    fn from_str(s: &'a str) -> Result<Self, Self::Err>;
+}
