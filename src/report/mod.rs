@@ -6,9 +6,11 @@ use crate::{
 };
 
 mod kind;
+mod station;
 mod time;
 
 pub use kind::ReportKind;
+pub use station::Station;
 pub use time::Time;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -26,13 +28,6 @@ pub struct Report<'a> {
     pub temperature: Annotated<'a, i32>,
     pub dew_point: Annotated<'a, i32>,
     pub pressure: Annotated<'a, Hectopascal>,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct Station<'a> {
-    pub icao_code: &'a str,
-    pub name: String,
-    pub country: String,
 }
 
 #[derive(Debug, PartialEq, Eq)]
