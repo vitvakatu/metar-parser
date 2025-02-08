@@ -6,8 +6,10 @@ use crate::{
 };
 
 mod kind;
+mod time;
 
 pub use kind::ReportKind;
+pub use time::Time;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
@@ -31,13 +33,6 @@ pub struct Station<'a> {
     pub icao_code: &'a str,
     pub name: String,
     pub country: String,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct Time {
-    pub day: u8,
-    pub hour: u8,
-    pub minute: u8,
 }
 
 #[derive(Debug, PartialEq, Eq)]
