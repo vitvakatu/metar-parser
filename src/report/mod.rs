@@ -1,16 +1,15 @@
-use crate::{
-    Annotated,
-    units::{Hectopascal, Meters},
-};
+use crate::{Annotated, units::Hectopascal};
 
 mod kind;
 mod station;
 mod time;
+mod visibility;
 mod wind;
 
 pub use kind::ReportKind;
 pub use station::Station;
 pub use time::Time;
+pub use visibility::Visibility;
 pub use wind::Wind;
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
@@ -19,7 +18,7 @@ pub struct Report<'a> {
     pub station: Annotated<'a, Station<'a>>,
     pub time: Annotated<'a, Time>,
     pub wind: Annotated<'a, Wind>,
-    pub visibility: Annotated<'a, Meters>,
+    pub visibility: Annotated<'a, Visibility>,
     pub percipitation: Option<Annotated<'a, Percipitation>>,
     pub clouds: Vec<Annotated<'a, CloudLayer>>,
     pub temperature: Annotated<'a, i32>,

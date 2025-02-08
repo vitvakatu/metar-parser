@@ -37,7 +37,7 @@ fn primary() {
             input,
             10..20,
         ),
-        visibility: Annotated::with_range(Meters(5000), input, 20..25),
+        visibility: Annotated::with_range(Visibility::Horizontal(Meters(5000)), input, 20..25),
         percipitation: Some(Annotated::with_range(
             Percipitation::Rain {
                 intensity: Some(Intensity::Light),

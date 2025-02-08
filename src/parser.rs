@@ -2,7 +2,7 @@ use crate::{
     Annotated,
     report::{
         CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind, Station,
-        Time, Wind,
+        Time, Visibility, Wind,
     },
     units::{Hectopascal, Knots, Meters},
 };
@@ -48,7 +48,11 @@ impl<'a> Parser<'a> {
                 self.input,
                 10..20,
             ),
-            visibility: Annotated::with_range(Meters(5000), self.input, 20..25),
+            visibility: Annotated::with_range(
+                Visibility::Horizontal(Meters(5000)),
+                self.input,
+                20..25,
+            ),
             percipitation: Some(Annotated::with_range(
                 Percipitation::Rain {
                     intensity: Some(Intensity::Light),
