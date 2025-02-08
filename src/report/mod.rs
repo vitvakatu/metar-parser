@@ -1,18 +1,17 @@
-use std::ops::RangeInclusive;
-
 use crate::{
     Annotated,
-    units::{Hectopascal, Knots, Meters},
+    units::{Hectopascal, Meters},
 };
 
 mod kind;
 mod station;
 mod time;
+mod wind;
 
 pub use kind::ReportKind;
 pub use station::Station;
 pub use time::Time;
-
+pub use wind::Wind;
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
     pub origin: &'a str,
@@ -26,14 +25,6 @@ pub struct Report<'a> {
     pub temperature: Annotated<'a, i32>,
     pub dew_point: Annotated<'a, i32>,
     pub pressure: Annotated<'a, Hectopascal>,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct Wind {
-    pub direction: u32,
-    pub speed: Knots,
-    pub gust: Option<Knots>,
-    pub variable: Option<RangeInclusive<u32>>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
