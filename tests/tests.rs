@@ -1,8 +1,4 @@
-use parser::Parser;
-use parser::{
-    CloudLayer, CloudSignificant, Cover, Hectopascal, Intensity, Knots, Percipitation, Report,
-    ReportKind, Station, Time, Wind,
-};
+use parser::prelude::*;
 
 #[test]
 fn primary() {
