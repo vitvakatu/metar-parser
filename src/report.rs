@@ -1,22 +1,25 @@
 use std::ops::RangeInclusive;
 
-use crate::units::{Hectopascal, Knots, Meters};
+use crate::{
+    Annotated,
+    units::{Hectopascal, Knots, Meters},
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
     pub origin: &'a str,
-    pub kind: ReportKind,
-    pub station: Station<'a>,
-    pub time: Time,
+    pub kind: Annotated<'a, ReportKind>,
+    pub station: Annotated<'a, Station<'a>>,
+    pub time: Annotated<'a, Time>,
     pub is_correction: bool,
     pub is_auto: bool,
-    pub wind: Wind,
-    pub visibility: Meters,
-    pub percipitation: Option<Percipitation>,
-    pub clouds: Vec<CloudLayer>,
-    pub temperature: i32,
-    pub dew_point: i32,
-    pub pressure: Hectopascal,
+    pub wind: Annotated<'a, Wind>,
+    pub visibility: Annotated<'a, Meters>,
+    pub percipitation: Option<Annotated<'a, Percipitation>>,
+    pub clouds: Vec<Annotated<'a, CloudLayer>>,
+    pub temperature: Annotated<'a, i32>,
+    pub dew_point: Annotated<'a, i32>,
+    pub pressure: Annotated<'a, Hectopascal>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

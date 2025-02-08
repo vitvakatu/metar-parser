@@ -8,49 +8,84 @@ fn primary() {
     assert!(parser.parse().is_ok());
     let expected = Report {
         origin: input,
-        kind: ReportKind::Metar,
-        station: Station {
-            icao_code: "EHLE",
-            name: "Lelystad Airport".to_owned(),
-            country: "Germany".to_owned(),
-        },
-        time: Time {
-            day: 28,
-            hour: 9,
-            minute: 25,
-        },
+        kind: Annotated::new(ReportKind::Metar, input, 0, 4),
+        station: Annotated::new(
+            Station {
+                icao_code: "EHLE",
+                name: "Lelystad Airport".to_owned(),
+                country: "Germany".to_owned(),
+            },
+            input,
+            0,
+            4,
+        ),
+        time: Annotated::new(
+            Time {
+                day: 28,
+                hour: 9,
+                minute: 25,
+            },
+            input,
+            4,
+            10,
+        ),
         is_correction: false,
         is_auto: true,
-        wind: Wind {
-            direction: 210,
-            speed: Knots(9),
-            gust: Some(Knots(19)),
-            variable: Some(60..=130),
-        },
-        visibility: Meters(5000),
-        percipitation: Some(Percipitation::Rain {
-            intensity: Some(Intensity::Light),
-        }),
+        wind: Annotated::new(
+            Wind {
+                direction: 210,
+                speed: Knots(9),
+                gust: Some(Knots(19)),
+                variable: Some(60..=130),
+            },
+            input,
+            10,
+            20,
+        ),
+        visibility: Annotated::new(Meters(5000), input, 20, 25),
+        percipitation: Some(Annotated::new(
+            Percipitation::Rain {
+                intensity: Some(Intensity::Light),
+            },
+            input,
+            25,
+            30,
+        )),
         clouds: vec![
-            CloudLayer {
-                ceiling: 700,
-                cover: Cover::Few,
-                ..Default::default()
-            },
-            CloudLayer {
-                ceiling: 1400,
-                cover: Cover::Broken,
-                significant: Some(CloudSignificant::Cumulonimbus),
-            },
-            CloudLayer {
-                ceiling: 1700,
-                cover: Cover::Broken,
-                ..Default::default()
-            },
+            Annotated::new(
+                CloudLayer {
+                    ceiling: 700,
+                    cover: Cover::Few,
+                    ..Default::default()
+                },
+                input,
+                30,
+                35,
+            ),
+            Annotated::new(
+                CloudLayer {
+                    ceiling: 1400,
+                    cover: Cover::Broken,
+                    significant: Some(CloudSignificant::Cumulonimbus),
+                },
+                input,
+                35,
+                40,
+            ),
+            Annotated::new(
+                CloudLayer {
+                    ceiling: 1700,
+                    cover: Cover::Broken,
+                    ..Default::default()
+                },
+                input,
+                40,
+                45,
+            ),
         ],
-        temperature: 2,
-        dew_point: -1,
-        pressure: Hectopascal(1001),
+        temperature: Annotated::new(2, input, 45, 47),
+        dew_point: Annotated::new(-1, input, 47, 49),
+        pressure: Annotated::new(Hectopascal(1001), input, 49, 54),
     };
     assert_eq!(parser.parse().unwrap(), expected);
 }
