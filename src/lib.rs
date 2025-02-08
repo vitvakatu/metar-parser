@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 pub mod parser;
 pub mod report;
 pub mod units;
@@ -23,12 +25,21 @@ pub struct Annotated<'a, T> {
 }
 
 impl<'a, T> Annotated<'a, T> {
-    pub fn new(inner: T, origin: &'a str, start: usize, end: usize) -> Self {
+    pub fn new(inner: T, origin: &'a str) -> Self {
         Self {
             inner,
             origin,
-            start,
-            end,
+            start: 0,
+            end: origin.len(),
+        }
+    }
+
+    pub fn with_range(inner: T, origin: &'a str, range: Range<usize>) -> Self {
+        Self {
+            inner,
+            origin,
+            start: range.start,
+            end: range.end,
         }
     }
 }

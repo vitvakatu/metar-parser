@@ -19,30 +19,28 @@ impl<'a> Parser<'a> {
     pub fn parse(&self) -> Result<Report<'a>, ()> {
         let report = Report {
             origin: self.input,
-            kind: Annotated::new(ReportKind::Metar, self.input, 0, 4),
-            station: Annotated::new(
+            kind: Annotated::with_range(ReportKind::Metar, self.input, 0..4),
+            station: Annotated::with_range(
                 Station {
                     icao_code: "EHLE",
                     name: "Lelystad Airport".to_owned(),
                     country: "Germany".to_owned(),
                 },
                 self.input,
-                0,
-                4,
+                0..4,
             ),
-            time: Annotated::new(
+            time: Annotated::with_range(
                 Time {
                     day: 28,
                     hour: 9,
                     minute: 25,
                 },
                 self.input,
-                4,
-                10,
+                4..10,
             ),
             is_correction: false,
             is_auto: true,
-            wind: Annotated::new(
+            wind: Annotated::with_range(
                 Wind {
                     direction: 210,
                     speed: Knots(9),
@@ -50,53 +48,48 @@ impl<'a> Parser<'a> {
                     variable: Some(60..=130),
                 },
                 self.input,
-                10,
-                20,
+                10..20,
             ),
-            visibility: Annotated::new(Meters(5000), self.input, 20, 25),
-            percipitation: Some(Annotated::new(
+            visibility: Annotated::with_range(Meters(5000), self.input, 20..25),
+            percipitation: Some(Annotated::with_range(
                 Percipitation::Rain {
                     intensity: Some(Intensity::Light),
                 },
                 self.input,
-                25,
-                30,
+                25..30,
             )),
             clouds: vec![
-                Annotated::new(
+                Annotated::with_range(
                     CloudLayer {
                         ceiling: 700,
                         cover: Cover::Few,
                         ..Default::default()
                     },
                     self.input,
-                    30,
-                    35,
+                    30..35,
                 ),
-                Annotated::new(
+                Annotated::with_range(
                     CloudLayer {
                         ceiling: 1400,
                         cover: Cover::Broken,
                         significant: Some(CloudSignificant::Cumulonimbus),
                     },
                     self.input,
-                    35,
-                    40,
+                    35..40,
                 ),
-                Annotated::new(
+                Annotated::with_range(
                     CloudLayer {
                         ceiling: 1700,
                         cover: Cover::Broken,
                         ..Default::default()
                     },
                     self.input,
-                    40,
-                    45,
+                    40..45,
                 ),
             ],
-            temperature: Annotated::new(2, self.input, 45, 47),
-            dew_point: Annotated::new(-1, self.input, 47, 49),
-            pressure: Annotated::new(Hectopascal(1001), self.input, 49, 54),
+            temperature: Annotated::with_range(2, self.input, 45..47),
+            dew_point: Annotated::with_range(-1, self.input, 47..49),
+            pressure: Annotated::with_range(Hectopascal(1001), self.input, 49..54),
         };
         Ok(report)
     }
