@@ -9,6 +9,6 @@ pub mod prelude {
             CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind,
             Station, Time, Wind,
         },
-        units::{Hectopascal, Knots},
+        units::{Hectopascal, Knots, Meters},
     };
 }

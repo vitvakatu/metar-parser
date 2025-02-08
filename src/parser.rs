@@ -3,7 +3,7 @@ use crate::{
         CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind, Station,
         Time, Wind,
     },
-    units::{Hectopascal, Knots},
+    units::{Hectopascal, Knots, Meters},
 };
 
 pub struct Parser<'a> {
@@ -37,7 +37,7 @@ impl<'a> Parser<'a> {
                 gust: Some(Knots(19)),
                 variable: Some(60..=130),
             },
-            visibility: 5000,
+            visibility: Meters(5000),
             percipitation: Some(Percipitation::Rain {
                 intensity: Some(Intensity::Light),
             }),

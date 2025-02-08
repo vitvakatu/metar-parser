@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::units::{Hectopascal, Knots};
+use crate::units::{Hectopascal, Knots, Meters};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
@@ -11,7 +11,7 @@ pub struct Report<'a> {
     pub is_correction: bool,
     pub is_auto: bool,
     pub wind: Wind,
-    pub visibility: u32,
+    pub visibility: Meters,
     pub percipitation: Option<Percipitation>,
     pub clouds: Vec<CloudLayer>,
     pub temperature: i32,
