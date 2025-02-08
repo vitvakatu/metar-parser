@@ -19,8 +19,6 @@ pub struct Report<'a> {
     pub kind: Annotated<'a, ReportKind>,
     pub station: Annotated<'a, Station<'a>>,
     pub time: Annotated<'a, Time>,
-    pub is_correction: bool,
-    pub is_auto: bool,
     pub wind: Annotated<'a, Wind>,
     pub visibility: Annotated<'a, Meters>,
     pub percipitation: Option<Annotated<'a, Percipitation>>,

@@ -38,8 +38,6 @@ impl<'a> Parser<'a> {
                 self.input,
                 4..10,
             ),
-            is_correction: false,
-            is_auto: true,
             wind: Annotated::with_range(
                 Wind {
                     direction: 210,
