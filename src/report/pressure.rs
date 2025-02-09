@@ -1,4 +1,8 @@
-use crate::{Annotated, parser::Parse, units::Hectopascal};
+use crate::{
+    Annotated,
+    parser::{Context, Parse},
+    units::Hectopascal,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Pressure {
@@ -8,14 +12,11 @@ pub struct Pressure {
 impl<'a> Parse<'a> for Annotated<'a, Pressure> {
     type Err = Annotated<'a, ()>;
 
-    fn from_str(s: &'a str) -> Result<Self, Self::Err> {
-        let value = s[1..].parse().unwrap();
-        Ok(Annotated::new(
-            Pressure {
-                value: Hectopascal(value),
-            },
-            s,
-        ))
+    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+        let value = context.current()[1..].parse().unwrap();
+        Ok(context.annotate(Pressure {
+            value: Hectopascal(value),
+        }))
     }
 }
 
@@ -26,7 +27,8 @@ mod tests {
     #[test]
     fn test_pressure() {
         let input = "Q1013";
-        let pressure: Annotated<Pressure> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let pressure: Annotated<Pressure> = Parse::from_str(&context).unwrap();
         assert_eq!(pressure.inner.value, Hectopascal(1013));
     }
 }

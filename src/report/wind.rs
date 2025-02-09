@@ -1,5 +1,8 @@
-use crate::Annotated;
-use crate::{parser::Parse, units::Knots};
+use crate::units::Knots;
+use crate::{
+    Annotated,
+    parser::{Context, Parse},
+};
 use std::ops::RangeInclusive;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -13,15 +16,20 @@ pub struct Wind {
 impl<'a> Parse<'a> for Annotated<'a, Wind> {
     type Err = Annotated<'a, ()>;
 
-    fn from_str(s: &'a str) -> Result<Self, Self::Err> {
+    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+        if context.current().len() < 5 {
+            return Err(context.annotate(()));
+        }
+        let direction = context.current()[0..3].parse().unwrap();
+        let speed = context.current()[3..5].parse().unwrap();
         let wind = Wind {
-            direction: 180,
-            speed: Knots(10),
+            direction,
+            speed: Knots(speed),
             gust: None,
             variable: None,
         };
 
-        Ok(Annotated::new(wind, s))
+        Ok(context.annotate(wind))
     }
 }
 
@@ -33,7 +41,8 @@ mod tests {
     #[test]
     fn test_wind() {
         let input = "18010KT";
-        let wind: Annotated<Wind> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let wind: Annotated<Wind> = Parse::from_str(&context).unwrap();
         assert_eq!(
             wind,
             Annotated::new(

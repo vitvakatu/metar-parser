@@ -1,4 +1,7 @@
-use crate::{Annotated, parser::Parse};
+use crate::{
+    Annotated,
+    parser::{Context, Parse},
+};
 
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct CloudLayer {
@@ -26,15 +29,13 @@ pub enum CloudSignificant {
 impl<'a> Parse<'a> for Annotated<'a, CloudLayer> {
     type Err = Annotated<'a, ()>;
 
-    fn from_str(s: &'a str) -> Result<Self, Self::Err> {
-        Ok(Annotated::new(
-            CloudLayer {
-                ceiling: 1400,
-                cover: Cover::Broken,
-                significant: None,
-            },
-            s,
-        ))
+    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+        let layer = CloudLayer {
+            ceiling: 1400,
+            cover: Cover::Broken,
+            significant: None,
+        };
+        Ok(context.annotate(layer))
     }
 }
 
@@ -45,7 +46,8 @@ mod tests {
     #[test]
     fn test_cloud_layer() {
         let input = "BKN014CB";
-        let cloud_layer: Annotated<CloudLayer> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let cloud_layer: Annotated<CloudLayer> = Parse::from_str(&context).unwrap();
         assert_eq!(
             cloud_layer,
             Annotated::with_range(

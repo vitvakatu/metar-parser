@@ -1,4 +1,7 @@
-use crate::{Annotated, parser::Parse};
+use crate::{
+    Annotated,
+    parser::{Context, Parse},
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Percipitation {
@@ -14,8 +17,9 @@ pub enum Intensity {
 impl<'a> Parse<'a> for Annotated<'a, Percipitation> {
     type Err = Annotated<'a, ()>;
 
-    fn from_str(s: &'a str) -> Result<Self, Self::Err> {
-        Ok(Annotated::new(Percipitation::Rain { intensity: None }, s))
+    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+        let percipitation = Percipitation::Rain { intensity: None };
+        Ok(context.annotate(percipitation))
     }
 }
 
@@ -26,7 +30,8 @@ mod tests {
     #[test]
     fn test_rain() {
         let input = "RA";
-        let percipitation: Annotated<Percipitation> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let percipitation: Annotated<Percipitation> = Parse::from_str(&context).unwrap();
         assert_eq!(percipitation.inner, Percipitation::Rain { intensity: None });
     }
 }

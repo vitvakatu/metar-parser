@@ -1,7 +1,10 @@
 use std::cell::LazyCell;
 use std::collections::HashMap;
 
-use crate::{Annotated, parser::Parse};
+use crate::{
+    Annotated,
+    parser::{Context, Parse},
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Station<'a> {
@@ -28,13 +31,13 @@ pub const KNOWN_STATIONS: LazyCell<HashMap<&'static str, Station>> = LazyCell::n
 impl<'a> Parse<'a> for Annotated<'a, Station<'a>> {
     type Err = Annotated<'a, ()>;
 
-    fn from_str(s: &'a str) -> Result<Self, Self::Err> {
+    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
         let stations = KNOWN_STATIONS;
-        let station = stations.get(s);
+        let station = stations.get(context.current());
         if let Some(station) = station {
-            return Ok(Annotated::new(station.clone(), s));
+            return Ok(context.annotate(station.clone()));
         }
-        Err(Annotated::new((), s))
+        Err(context.annotate(()))
     }
 }
 
@@ -45,7 +48,8 @@ mod tests {
     #[test]
     fn test_station_ulli() {
         let input = "ULLI";
-        let station: Annotated<Station> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let station: Annotated<Station> = Parse::from_str(&context).unwrap();
         assert_eq!(station, Annotated {
             inner: Station {
                 icao_code: input,
@@ -61,7 +65,8 @@ mod tests {
     #[test]
     fn test_station_ehle() {
         let input = "EHLE";
-        let station: Annotated<Station> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let station: Annotated<Station> = Parse::from_str(&context).unwrap();
         assert_eq!(station, Annotated {
             inner: Station {
                 icao_code: input,
@@ -77,7 +82,8 @@ mod tests {
     #[test]
     fn test_station_unknown() {
         let input = "ZZZZ";
-        let station: Result<Annotated<Station>, _> = Parse::from_str(input);
+        let context = Context::new(input);
+        let station: Result<Annotated<Station>, _> = Parse::from_str(&context);
         assert!(station.is_err());
         assert_eq!(station.unwrap_err(), Annotated {
             inner: (),

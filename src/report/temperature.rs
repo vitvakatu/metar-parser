@@ -1,4 +1,7 @@
-use crate::{Annotated, parser::Parse};
+use crate::{
+    Annotated,
+    parser::{Context, Parse},
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Temperature {
@@ -9,13 +12,13 @@ pub struct Temperature {
 impl<'a> Parse<'a> for Annotated<'a, Temperature> {
     type Err = Annotated<'a, ()>;
 
-    fn from_str(s: &'a str) -> Result<Self, Self::Err> {
-        let mut parts = s.split('/');
+    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+        let mut parts = context.current().split('/');
         let temperature = Temperature {
             value: parts.next().unwrap().parse().unwrap(),
             dew_point: parts.next().unwrap().parse().unwrap(),
         };
-        Ok(Annotated::new(temperature, s))
+        Ok(context.annotate(temperature))
     }
 }
 
@@ -27,7 +30,8 @@ mod tests {
     #[test]
     fn test_temperature() {
         let input = "10/05";
-        let temperature: Annotated<Temperature> = Parse::from_str(input).unwrap();
+        let context = Context::new(input);
+        let temperature: Annotated<Temperature> = Parse::from_str(&context).unwrap();
         assert_eq!(
             temperature,
             Annotated::new(

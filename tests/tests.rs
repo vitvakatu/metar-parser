@@ -1,4 +1,75 @@
 use parser::prelude::*;
+use pretty_assertions::assert_eq;
+
+#[test]
+fn test_simple() {
+    let input = "METAR ULLI 280900Z 10005KT 9999 RA BKN014 10/05 Q1005";
+    let parser = Parser::new(input);
+    assert!(parser.parse().is_ok());
+    let expected = Report {
+        origin: input,
+        kind: Annotated::with_range(ReportKind::Metar, input, 0..5),
+        station: Annotated::with_range(
+            Station {
+                icao_code: "ULLI",
+                name: "Pulkovo Airport".to_owned(),
+                country: "Russia".to_owned(),
+            },
+            input,
+            6..10,
+        ),
+        time: Annotated::with_range(
+            Time {
+                day: 28,
+                hour: 9,
+                minute: 0,
+            },
+            input,
+            11..18,
+        ),
+        wind: Annotated::with_range(
+            Wind {
+                direction: 100,
+                speed: Knots(5),
+                gust: None,
+                variable: None,
+            },
+            input,
+            19..26,
+        ),
+        visibility: Annotated::with_range(Visibility::Horizontal(Meters(9999)), input, 27..31),
+        percipitation: Some(Annotated::with_range(
+            Percipitation::Rain { intensity: None },
+            input,
+            32..34,
+        )),
+        clouds: vec![Annotated::with_range(
+            CloudLayer {
+                ceiling: 1400,
+                cover: Cover::Broken,
+                significant: None,
+            },
+            input,
+            35..41,
+        )],
+        temperature: Annotated::with_range(
+            Temperature {
+                value: 10,
+                dew_point: 5,
+            },
+            input,
+            42..47,
+        ),
+        pressure: Annotated::with_range(
+            Pressure {
+                value: Hectopascal(1005),
+            },
+            input,
+            48..53,
+        ),
+    };
+    assert_eq!(parser.parse().unwrap(), expected);
+}
 
 #[test]
 fn primary() {
