@@ -8,6 +8,7 @@ mod temperature;
 mod time;
 mod visibility;
 mod wind;
+mod clouds;
 
 pub use kind::ReportKind;
 pub use percipitation::Intensity;
@@ -18,6 +19,9 @@ pub use temperature::Temperature;
 pub use time::Time;
 pub use visibility::Visibility;
 pub use wind::Wind;
+pub use clouds::CloudLayer;
+pub use clouds::Cover;
+pub use clouds::CloudSignificant;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {
@@ -31,26 +35,4 @@ pub struct Report<'a> {
     pub clouds: Vec<Annotated<'a, CloudLayer>>,
     pub temperature: Annotated<'a, Temperature>,
     pub pressure: Annotated<'a, Pressure>,
-}
-
-#[derive(Default, Debug, PartialEq, Eq)]
-pub struct CloudLayer {
-    pub ceiling: u32,
-    pub cover: Cover,
-    pub significant: Option<CloudSignificant>,
-}
-
-#[derive(Default, Debug, PartialEq, Eq)]
-pub enum Cover {
-    #[default]
-    Clear,
-    Few,
-    Scattered,
-    Broken,
-    Overcast,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum CloudSignificant {
-    Cumulonimbus,
 }
