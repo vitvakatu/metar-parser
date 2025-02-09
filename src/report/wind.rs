@@ -1,9 +1,25 @@
 use crate::units::Knots;
 use crate::{
-    Annotated,
+    Annotated, ResultExt,
     parser::{Context, Parse},
 };
+use snafu::prelude::*;
+use std::num::ParseIntError;
 use std::ops::RangeInclusive;
+
+#[derive(Debug, Snafu, PartialEq)]
+pub enum Error {
+    #[snafu(display("Invalid format, expected <direction><speed>KT"))]
+    InvalidFormat,
+    #[snafu(display("Invalid direction (0-360): {value}"))]
+    InvalidDirection { value: u32 },
+    #[snafu(display("Invalid speed (0-49): {value}"))]
+    InvalidSpeed { value: u32 },
+    #[snafu(display("Invalid gust (0-49): {value}"))]
+    InvalidGust { value: u32 },
+    #[snafu(display("Not an integer: {source}"))]
+    NotAnInteger { source: ParseIntError },
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Wind {
@@ -14,28 +30,41 @@ pub struct Wind {
 }
 
 impl<'a> Parse<'a> for Annotated<'a, Wind> {
-    type Err = Annotated<'a, ()>;
+    type Err = Annotated<'a, Error>;
 
     fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
-        if context.current().len() < 5 {
-            return Err(context.annotate(()));
-        }
-        let direction = context.current()[0..3].parse().unwrap();
-        let speed = context.current()[3..5].parse().unwrap();
-        let wind = Wind {
-            direction,
-            speed: Knots(speed),
-            gust: None,
-            variable: None,
-        };
-
-        Ok(context.annotate(wind))
+        parse_wind_internal(context.current()).annotate(context)
     }
+}
+
+fn parse_wind_internal(value: &str) -> Result<Wind, Error> {
+    ensure!(value.len() >= 7, InvalidFormatSnafu);
+    ensure!(value.ends_with("KT"), InvalidFormatSnafu);
+
+    let direction = value[0..3].parse::<u32>().context(NotAnIntegerSnafu)?;
+    let speed = value[3..5].parse::<u32>().context(NotAnIntegerSnafu)?;
+
+    ensure!(direction <= 360, InvalidDirectionSnafu { value: direction });
+    ensure!(speed <= 49, InvalidSpeedSnafu { value: speed });
+
+    let gust = if value.len() == 10 {
+        let gust = value[6..8].parse::<u32>().context(NotAnIntegerSnafu)?;
+        ensure!(gust <= 49, InvalidGustSnafu { value: gust });
+        Some(Knots(gust))
+    } else {
+        None
+    };
+
+    Ok(Wind {
+        direction,
+        speed: Knots(speed),
+        gust,
+        variable: None,
+    })
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]

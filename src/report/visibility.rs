@@ -1,8 +1,19 @@
+use std::num::ParseIntError;
+
 use crate::{
-    Annotated,
+    Annotated, ResultExt,
     parser::{Context, Parse},
     units::Meters,
 };
+use snafu::prelude::*;
+
+#[derive(Debug, Snafu, PartialEq)]
+pub enum Error {
+    #[snafu(display("Invalid visibility (0-9999)"))]
+    InvalidVisibility,
+    #[snafu(display("Not an integer: {source}"))]
+    NotAnInteger { source: ParseIntError },
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Visibility {
@@ -10,13 +21,17 @@ pub enum Visibility {
 }
 
 impl<'a> Parse<'a> for Annotated<'a, Visibility> {
-    type Err = Annotated<'a, ()>;
+    type Err = Annotated<'a, Error>;
 
     fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
-        let value = context.current().parse().unwrap();
-        let visibility = Visibility::Horizontal(Meters(value));
-        Ok(context.annotate(visibility))
+        parse_visibility(context.current()).annotate(context)
     }
+}
+
+fn parse_visibility(value: &str) -> Result<Visibility, Error> {
+    let value = value.parse::<u32>().context(NotAnIntegerSnafu)?;
+    ensure!(value <= 9999, InvalidVisibilitySnafu);
+    Ok(Visibility::Horizontal(Meters(value)))
 }
 
 #[cfg(test)]

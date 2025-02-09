@@ -1,8 +1,18 @@
 use crate::{
-    Annotated,
+    Annotated, ResultExt,
     parser::{Context, Parse},
     units::Hectopascal,
 };
+use snafu::prelude::*;
+use std::num::ParseIntError;
+
+#[derive(Debug, Snafu, PartialEq)]
+pub enum Error {
+    #[snafu(display("Invalid format, expected Q<value>"))]
+    InvalidFormat,
+    #[snafu(display("Not an integer: {source}"))]
+    NotAnInteger { source: ParseIntError },
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Pressure {
@@ -10,16 +20,21 @@ pub struct Pressure {
 }
 
 impl<'a> Parse<'a> for Annotated<'a, Pressure> {
-    type Err = Annotated<'a, ()>;
+    type Err = Annotated<'a, Error>;
 
     fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
-        let value = context.current()[1..].parse().unwrap();
-        Ok(context.annotate(Pressure {
-            value: Hectopascal(value),
-        }))
+        parse_pressure(context.current()).annotate(context)
     }
 }
 
+fn parse_pressure(value: &str) -> Result<Pressure, Error> {
+    ensure!(value.starts_with('Q'), InvalidFormatSnafu);
+    ensure!(value.len() == 5, InvalidFormatSnafu);
+    let value = value[1..].parse::<u32>().context(NotAnIntegerSnafu)?;
+    Ok(Pressure {
+        value: Hectopascal(value),
+    })
+}
 #[cfg(test)]
 mod tests {
     use super::*;

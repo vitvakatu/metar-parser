@@ -1,7 +1,31 @@
+use std::num::ParseIntError;
+
+use crate::ResultExt;
 use crate::{
     Annotated,
     parser::{Context, Parse},
 };
+use snafu::prelude::*;
+
+#[derive(Debug, Snafu, PartialEq)]
+pub enum Error {
+    #[snafu(display("Invalid format, expected <value>/<dew_point>"))]
+    InvalidFormat,
+    #[snafu(display("Invalid temperature: {source}"))]
+    InvalidTemperature { source: ParsingError },
+    #[snafu(display("Invalid dew point: {source}"))]
+    InvalidDewPoint { source: ParsingError },
+}
+
+#[derive(Debug, Snafu, PartialEq)]
+pub enum ParsingError {
+    #[snafu(display("Negative values must be prefixed with 'M'"))]
+    InvalidNegativeValue,
+    #[snafu(display("Invalid digits count, expected 2"))]
+    InvalidDigitsCount,
+    #[snafu(display("Not an integer: {source}"))]
+    NotAnInteger { source: ParseIntError },
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Temperature {
@@ -10,16 +34,43 @@ pub struct Temperature {
 }
 
 impl<'a> Parse<'a> for Annotated<'a, Temperature> {
-    type Err = Annotated<'a, ()>;
+    type Err = Annotated<'a, Error>;
 
     fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
         let mut parts = context.current().split('/');
-        let temperature = Temperature {
-            value: parts.next().unwrap().parse().unwrap(),
-            dew_point: parts.next().unwrap().parse().unwrap(),
-        };
-        Ok(context.annotate(temperature))
+        let value = parts
+            .next()
+            .context(InvalidFormatSnafu)
+            .annotate_err(context)?;
+        let dew_point = parts
+            .next()
+            .context(InvalidFormatSnafu)
+            .annotate_err(context)?;
+
+        let temperature = parse_individual_temperature(value)
+            .context(InvalidTemperatureSnafu)
+            .annotate_err(context)?;
+        let dew_point = parse_individual_temperature(dew_point)
+            .context(InvalidDewPointSnafu)
+            .annotate_err(context)?;
+
+        Ok(context.annotate(Temperature {
+            value: temperature,
+            dew_point,
+        }))
     }
+}
+
+fn parse_individual_temperature(value: &str) -> Result<i32, ParsingError> {
+    let value = if value.starts_with('M') {
+        &value[1..]
+    } else {
+        value
+    };
+    ensure!(!value.contains('-'), InvalidNegativeValueSnafu);
+    ensure!(value.len() == 2, InvalidDigitsCountSnafu);
+    let value = value.parse::<i32>().context(NotAnIntegerSnafu)?;
+    Ok(value)
 }
 
 #[cfg(test)]

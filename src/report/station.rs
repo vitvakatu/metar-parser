@@ -1,10 +1,16 @@
 use std::cell::LazyCell;
 use std::collections::HashMap;
 
+use snafu::Snafu;
+
 use crate::{
     Annotated,
     parser::{Context, Parse},
 };
+
+#[derive(Debug, Snafu, PartialEq)]
+#[snafu(display("Unknown station"))]
+pub struct UnknownStation;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Station<'a> {
@@ -29,7 +35,7 @@ pub const KNOWN_STATIONS: LazyCell<HashMap<&'static str, Station>> = LazyCell::n
 });
 
 impl<'a> Parse<'a> for Annotated<'a, Station<'a>> {
-    type Err = Annotated<'a, ()>;
+    type Err = Annotated<'a, UnknownStation>;
 
     fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
         let stations = KNOWN_STATIONS;
@@ -37,7 +43,7 @@ impl<'a> Parse<'a> for Annotated<'a, Station<'a>> {
         if let Some(station) = station {
             return Ok(context.annotate(station.clone()));
         }
-        Err(context.annotate(()))
+        Err(context.annotate(UnknownStation))
     }
 }
 
@@ -86,7 +92,7 @@ mod tests {
         let station: Result<Annotated<Station>, _> = Parse::from_str(&context);
         assert!(station.is_err());
         assert_eq!(station.unwrap_err(), Annotated {
-            inner: (),
+            inner: UnknownStation,
             origin: input,
             start: 0,
             end: 4,

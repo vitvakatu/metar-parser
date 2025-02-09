@@ -2,6 +2,11 @@ use crate::{
     Annotated,
     parser::{Context, Parse},
 };
+use snafu::Snafu;
+
+#[derive(Debug, Snafu, PartialEq)]
+#[snafu(display("Invalid report kind, expected METAR/SPECI"))]
+pub struct InvalidReportKind;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReportKind {
@@ -10,13 +15,13 @@ pub enum ReportKind {
 }
 
 impl<'a> Parse<'a> for Annotated<'a, ReportKind> {
-    type Err = Annotated<'a, ()>;
+    type Err = Annotated<'a, InvalidReportKind>;
 
     fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
         match context.current() {
             "METAR" => Ok(context.annotate(ReportKind::Metar)),
             "SPECI" => Ok(context.annotate(ReportKind::Speci)),
-            _ => Err(context.annotate(())),
+            _ => Err(context.annotate(InvalidReportKind)),
         }
     }
 }
@@ -58,7 +63,7 @@ mod tests {
         let kind: Result<Annotated<ReportKind>, _> = Parse::from_str(&context);
         assert!(kind.is_err());
         assert_eq!(kind.unwrap_err(), Annotated {
-            inner: (),
+            inner: InvalidReportKind,
             origin: input,
             start: 0,
             end: 7
