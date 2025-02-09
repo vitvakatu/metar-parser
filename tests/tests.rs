@@ -74,8 +74,14 @@ fn primary() {
                 40..45,
             ),
         ],
-        temperature: Annotated::with_range(2, input, 45..47),
-        dew_point: Annotated::with_range(-1, input, 47..49),
+        temperature: Annotated::with_range(
+            Temperature {
+                value: 2,
+                dew_point: -1,
+            },
+            input,
+            45..47,
+        ),
         pressure: Annotated::with_range(Hectopascal(1001), input, 49..54),
     };
     assert_eq!(parser.parse().unwrap(), expected);

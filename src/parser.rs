@@ -2,7 +2,7 @@ use crate::{
     Annotated,
     report::{
         CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind, Station,
-        Time, Visibility, Wind,
+        Temperature, Time, Visibility, Wind,
     },
     units::{Hectopascal, Knots, Meters},
 };
@@ -89,8 +89,14 @@ impl<'a> Parser<'a> {
                     40..45,
                 ),
             ],
-            temperature: Annotated::with_range(2, self.input, 45..47),
-            dew_point: Annotated::with_range(-1, self.input, 47..49),
+            temperature: Annotated::with_range(
+                Temperature {
+                    value: 2,
+                    dew_point: -1,
+                },
+                self.input,
+                45..47,
+            ),
             pressure: Annotated::with_range(Hectopascal(1001), self.input, 49..54),
         };
         Ok(report)

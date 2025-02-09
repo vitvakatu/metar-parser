@@ -10,7 +10,7 @@ pub mod prelude {
         parser::Parser,
         report::{
             CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind,
-            Station, Time, Visibility, Wind,
+            Station, Temperature, Time, Visibility, Wind,
         },
         units::{Hectopascal, Knots, Meters},
     };
