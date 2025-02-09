@@ -1,6 +1,7 @@
 use crate::Annotated;
 
 mod kind;
+mod percipitation;
 mod pressure;
 mod station;
 mod temperature;
@@ -9,6 +10,8 @@ mod visibility;
 mod wind;
 
 pub use kind::ReportKind;
+pub use percipitation::Intensity;
+pub use percipitation::Percipitation;
 pub use pressure::Pressure;
 pub use station::Station;
 pub use temperature::Temperature;
@@ -28,17 +31,6 @@ pub struct Report<'a> {
     pub clouds: Vec<Annotated<'a, CloudLayer>>,
     pub temperature: Annotated<'a, Temperature>,
     pub pressure: Annotated<'a, Pressure>,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Percipitation {
-    Rain { intensity: Option<Intensity> },
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Intensity {
-    Light,
-    Heavy,
 }
 
 #[derive(Default, Debug, PartialEq, Eq)]
