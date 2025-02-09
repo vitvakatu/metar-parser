@@ -1,8 +1,8 @@
 use crate::{
     Annotated,
     report::{
-        CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind, Station,
-        Temperature, Time, Visibility, Wind,
+        CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Pressure, Report,
+        ReportKind, Station, Temperature, Time, Visibility, Wind,
     },
     units::{Hectopascal, Knots, Meters},
 };
@@ -97,7 +97,13 @@ impl<'a> Parser<'a> {
                 self.input,
                 45..47,
             ),
-            pressure: Annotated::with_range(Hectopascal(1001), self.input, 49..54),
+            pressure: Annotated::with_range(
+                Pressure {
+                    value: Hectopascal(1001),
+                },
+                self.input,
+                49..54,
+            ),
         };
         Ok(report)
     }

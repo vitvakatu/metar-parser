@@ -82,7 +82,13 @@ fn primary() {
             input,
             45..47,
         ),
-        pressure: Annotated::with_range(Hectopascal(1001), input, 49..54),
+        pressure: Annotated::with_range(
+            Pressure {
+                value: Hectopascal(1001),
+            },
+            input,
+            49..54,
+        ),
     };
     assert_eq!(parser.parse().unwrap(), expected);
 }

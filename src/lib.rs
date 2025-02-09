@@ -9,8 +9,8 @@ pub mod prelude {
         Annotated,
         parser::Parser,
         report::{
-            CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Report, ReportKind,
-            Station, Temperature, Time, Visibility, Wind,
+            CloudLayer, CloudSignificant, Cover, Intensity, Percipitation, Pressure, Report,
+            ReportKind, Station, Temperature, Time, Visibility, Wind,
         },
         units::{Hectopascal, Knots, Meters},
     };
