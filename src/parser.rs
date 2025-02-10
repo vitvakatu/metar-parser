@@ -6,7 +6,6 @@ use std::{
 };
 
 use frunk::hlist;
-use frunk::{Generic, labelled::chars::L};
 use snafu::ResultExt;
 
 use crate::{
@@ -82,50 +81,27 @@ impl<'a> Parser<'a> {
     pub fn parse(&self) -> Result<Report<'a>, Box<dyn AnnotatedDisplay<'a> + 'a>> {
         let mut context = Context::new(self.input);
         let parser_outputs = hlist![self.input];
-        let kind = report::kind::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        context.advance();
-        let parser_outputs = parser_outputs + hlist![kind];
-        let station = report::station::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        context.advance();
-        let parser_outputs = parser_outputs + hlist![station];
-        let time = report::time::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![time];
-        context.advance();
-        let wind = report::wind::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![wind];
-        context.advance();
-        let visibility = report::visibility::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![visibility];
-        context.advance();
-        let percipitation = report::percipitation::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![percipitation];
-        context.advance();
-        let clouds = report::clouds::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![clouds];
-        context.advance();
-        let temperature = report::temperature::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![temperature];
-        context.advance();
-        let pressure = report::pressure::Parser
-            .from_str(&context)
-            .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
-        let parser_outputs = parser_outputs + hlist![pressure];
+
+        macro_rules! parse {
+            ($parser:ident, $output:ident) => {
+                let $parser = report::$parser::Parser
+                    .from_str(&context)
+                    .map_err(|e| Box::new(e) as Box<dyn AnnotatedDisplay<'a>>)?;
+                let $output = $output + hlist![$parser];
+                context.advance();
+            };
+        }
+
+        parse!(kind, parser_outputs);
+        parse!(station, parser_outputs);
+        parse!(time, parser_outputs);
+        parse!(wind, parser_outputs);
+        parse!(visibility, parser_outputs);
+        parse!(percipitation, parser_outputs);
+        parse!(clouds, parser_outputs);
+        parse!(temperature, parser_outputs);
+        parse!(pressure, parser_outputs);
+
         let report: Report<'a> = frunk::from_generic(parser_outputs);
         Ok(report)
     }
