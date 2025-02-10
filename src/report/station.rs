@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Display;
-use std::sync::LazyLock;
 
 use serde::Serialize;
 use snafu::Snafu;
@@ -24,20 +22,7 @@ pub struct Station<'a> {
 
 pub struct Parser;
 
-static KNOWN_STATIONS: LazyLock<HashMap<&'static str, Station>> = LazyLock::new(|| {
-    HashMap::from([
-        ("ULLI", Station {
-            icao_code: "ULLI",
-            name: "Pulkovo Airport".to_owned(),
-            country: "Russia".to_owned(),
-        }),
-        ("EHLE", Station {
-            icao_code: "EHLE",
-            name: "Lelystad Airport".to_owned(),
-            country: "Netherlands".to_owned(),
-        }),
-    ])
-});
+read_stations::read_stations!();
 
 impl Display for Station<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

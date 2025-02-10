@@ -89,6 +89,7 @@ dependencies = [
  "frunk",
  "frunk_core",
  "pretty_assertions",
+ "read_stations",
  "serde",
  "serde_json",
  "snafu",
@@ -120,6 +121,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e4dccaaaf89514f546c693ddc140f729f958c247918a13380cccc6078391acc"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "read_stations"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
