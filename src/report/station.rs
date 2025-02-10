@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::{cell::LazyCell, fmt::Display};
+use std::fmt::Display;
+use std::sync::LazyLock;
 
 use serde::Serialize;
 use snafu::Snafu;
@@ -23,7 +24,7 @@ pub struct Station<'a> {
 
 pub struct Parser;
 
-pub const KNOWN_STATIONS: LazyCell<HashMap<&'static str, Station>> = LazyCell::new(|| {
+static KNOWN_STATIONS: LazyLock<HashMap<&'static str, Station>> = LazyLock::new(|| {
     HashMap::from([
         ("ULLI", Station {
             icao_code: "ULLI",
@@ -49,8 +50,7 @@ impl<'a> Parse<'a> for Parser {
     type Err = Annotated<'a, UnknownStation>;
 
     fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
-        let stations = KNOWN_STATIONS;
-        let station = stations.get(context.current());
+        let station = KNOWN_STATIONS.get(context.current());
         if let Some(station) = station {
             return Ok(context.annotate(station.clone()));
         }
