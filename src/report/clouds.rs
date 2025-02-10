@@ -7,19 +7,23 @@ use crate::{
     Annotated, ResultExt,
     parser::{Context, Parse},
 };
+use serde::Serialize;
 use snafu::prelude::*;
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid cloud layer format"))]
     InvalidFormat,
-    #[snafu(display("Not an integer"))]
-    NotAnInteger { source: ParseIntError },
+    #[snafu(display("Not an integer: {source}"))]
+    NotAnInteger {
+        #[serde(skip)]
+        source: ParseIntError,
+    },
 }
 
 pub struct Parser;
 
-#[derive(Default, Debug, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq, Serialize)]
 pub struct CloudLayer {
     pub ceiling: u32,
     pub cover: Cover,
@@ -46,7 +50,7 @@ impl Display for CloudLayer {
     }
 }
 
-#[derive(Default, Debug, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq, Serialize)]
 pub enum Cover {
     #[default]
     Clear,
@@ -56,7 +60,7 @@ pub enum Cover {
     Overcast,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub enum CloudSignificant {
     Cumulonimbus,
     Thunderstorm,

@@ -3,23 +3,27 @@ use crate::{
     parser::{Context, Parse},
     units::Hectopascal,
 };
+use serde::Serialize;
 use snafu::prelude::*;
 use std::{
     fmt::{self, Display},
     num::ParseIntError,
 };
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid format, expected Q<value>"))]
     InvalidFormat,
     #[snafu(display("Not an integer: {source}"))]
-    NotAnInteger { source: ParseIntError },
+    NotAnInteger {
+        #[serde(skip)]
+        source: ParseIntError,
+    },
 }
 
 pub struct Parser;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Pressure {
     pub value: Hectopascal,
 }

@@ -8,17 +8,21 @@ use crate::{
     parser::{Context, Parse},
     units::Meters,
 };
+use serde::Serialize;
 use snafu::prelude::*;
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid visibility (0-9999)"))]
     InvalidVisibility,
     #[snafu(display("Not an integer: {source}"))]
-    NotAnInteger { source: ParseIntError },
+    NotAnInteger {
+        #[serde(skip)]
+        source: ParseIntError,
+    },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub enum Visibility {
     Horizontal(Meters),
 }

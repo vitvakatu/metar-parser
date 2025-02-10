@@ -4,9 +4,10 @@ use crate::{
     Annotated, ResultExt,
     parser::{Context, Parse},
 };
+use serde::Serialize;
 use snafu::prelude::*;
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid percpitation format"))]
     InvalidFormat,
@@ -16,7 +17,7 @@ pub enum Error {
 
 pub struct Parser;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub enum Percipitation {
     Rain { intensity: Option<Intensity> },
 }
@@ -38,7 +39,7 @@ impl Display for Percipitation {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub enum Intensity {
     Light,
     Heavy,

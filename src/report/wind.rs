@@ -3,12 +3,13 @@ use crate::{
     Annotated, ResultExt,
     parser::{Context, Parse},
 };
+use serde::Serialize;
 use snafu::prelude::*;
 use std::fmt::{self, Display};
 use std::num::ParseIntError;
 use std::ops::RangeInclusive;
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid format, expected <direction><speed>KT"))]
     InvalidFormat,
@@ -18,11 +19,14 @@ pub enum Error {
     InvalidSpeed { value: u32 },
     #[snafu(display("Invalid gust (0-49): {value}"))]
     InvalidGust { value: u32 },
-    #[snafu(display("Not an integer: {source}"))]
-    NotAnInteger { source: ParseIntError },
+    #[snafu(display("Not an integer"))]
+    NotAnInteger {
+        #[serde(skip)]
+        source: ParseIntError,
+    },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Wind {
     pub direction: u32,
     pub speed: Knots,

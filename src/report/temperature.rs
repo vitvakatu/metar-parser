@@ -6,9 +6,10 @@ use crate::{
     Annotated,
     parser::{Context, Parse},
 };
+use serde::Serialize;
 use snafu::prelude::*;
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid format, expected <value>/<dew_point>"))]
     InvalidFormat,
@@ -18,19 +19,22 @@ pub enum Error {
     InvalidDewPoint { source: ParsingError },
 }
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum ParsingError {
     #[snafu(display("Negative values must be prefixed with 'M'"))]
     InvalidNegativeValue,
     #[snafu(display("Invalid digits count, expected 2"))]
     InvalidDigitsCount,
     #[snafu(display("Not an integer: {source}"))]
-    NotAnInteger { source: ParseIntError },
+    NotAnInteger {
+        #[serde(skip)]
+        source: ParseIntError,
+    },
 }
 
 pub struct Parser;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Temperature {
     pub value: i32,
     pub dew_point: i32,

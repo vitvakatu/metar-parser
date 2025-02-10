@@ -22,7 +22,7 @@ impl<'a> Parser<'a> {
         Self { input }
     }
 
-    pub fn describe(&self, mut output: impl Write) -> Result<(), snafu::Whatever> {
+    pub fn describe(&self, mut output: impl Write, json: bool) -> Result<(), snafu::Whatever> {
         let mut context = Context::new(self.input);
         let parsers: Vec<(
             &'static str,
@@ -56,24 +56,40 @@ impl<'a> Parser<'a> {
             ),
         ];
         let mut first = true;
+        if json {
+            write!(output, "[").with_whatever_context(|_| "Failed to write to output")?;
+        }
         loop {
             for (_, parser) in parsers.iter() {
                 let result = parser.from_str(&context);
-                if let Ok(result) = result {
-                    if !first {
-                        output
-                            .write_str(", ")
-                            .with_whatever_context(|_| "Failed to write to output")?;
+                match result {
+                    Ok(value) => {
+                        if !first {
+                            output
+                                .write_str(", ")
+                                .with_whatever_context(|_| "Failed to write to output")?;
+                        }
+                        if json {
+                            write!(output, "{}", value.as_json())
+                                .with_whatever_context(|_| "Failed to write to output")?;
+                        } else {
+                            output
+                                .write_fmt(format_args!("{}", DisplayHelper(value)))
+                                .with_whatever_context(|_| "Failed to write to output")?;
+                        }
                     }
-                    first = false;
-                    output
-                        .write_fmt(format_args!("{}", DisplayHelper(result)))
-                        .with_whatever_context(|_| "Failed to write to output")?;
+                    Err(_) => {
+                        // TODO: handle errors
+                    }
                 }
             }
             if !context.advance() {
                 break;
             }
+            first = false;
+        }
+        if json {
+            write!(output, "]").with_whatever_context(|_| "Failed to write to output")?;
         }
         Ok(())
     }
@@ -208,15 +224,22 @@ impl<
 pub trait AnnotatedDisplay<'a>: std::fmt::Debug {
     fn display(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result;
     fn annotation(&self) -> Annotated<'a, ()>;
+    fn as_json(&self) -> String;
 }
 
-impl<'a, T: Display + std::fmt::Debug> AnnotatedDisplay<'a> for Annotated<'a, T> {
+impl<'a, T: Display + std::fmt::Debug + serde::Serialize> AnnotatedDisplay<'a>
+    for Annotated<'a, T>
+{
     fn display(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&self.inner, fmt)
     }
 
     fn annotation(&self) -> Annotated<'a, ()> {
         Annotated::unit(self)
+    }
+
+    fn as_json(&self) -> String {
+        serde_json::to_string(&self.inner).unwrap()
     }
 }
 
@@ -227,6 +250,10 @@ impl<'a, T: AnnotatedDisplay<'a> + ?Sized> AnnotatedDisplay<'a> for Box<T> {
 
     fn annotation(&self) -> Annotated<'a, ()> {
         AnnotatedDisplay::annotation(&**self)
+    }
+
+    fn as_json(&self) -> String {
+        AnnotatedDisplay::as_json(&**self)
     }
 }
 

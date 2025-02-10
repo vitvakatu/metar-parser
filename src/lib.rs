@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use parser::Context;
-
+use serde::Serialize;
 pub mod parser;
 pub mod report;
 pub mod units;
@@ -18,7 +18,7 @@ pub mod prelude {
     };
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Annotated<'a, T> {
     pub inner: T,
     pub origin: &'a str,

@@ -6,10 +6,22 @@ fn test_dynamic_simple() {
     let input = "METAR ULLI 280900Z 10005KT 9999 RA BKN014 10/05 Q1005";
     let parser = Parser::new(input);
     let mut destination = String::new();
-    parser.describe(&mut destination).unwrap();
+    parser.describe(&mut destination, false).unwrap();
     assert_eq!(
         destination,
         "METAR, ULLI (Pulkovo Airport, Russia), day 28, 09:00 UTC, wind 100° 5KT, visibility 9999 m, rain, broken clouds at 1400ft, temperature 10°C, dew point 5°C, QNH 1005 hpa"
+    );
+}
+
+#[test]
+fn json_interface() {
+    let input = "METAR ULLI 280900Z 10005KT 9999 RA BKN014 10/05 Q1005";
+    let parser = Parser::new(input);
+    let mut destination = String::new();
+    parser.describe(&mut destination, true).unwrap();
+    assert_eq!(
+        destination,
+        r#"["Metar", {"icao_code":"ULLI","name":"Pulkovo Airport","country":"Russia"}, {"day":28,"hour":9,"minute":0}, {"direction":100,"speed":5,"gust":null,"variable":null}, {"Horizontal":9999}, {"Rain":{"intensity":null}}, {"ceiling":1400,"cover":"Broken","significant":null}, {"value":10,"dew_point":5}, {"value":1005}]"#
     );
 }
 

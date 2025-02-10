@@ -7,16 +7,20 @@ use crate::{
     Annotated, ResultExt,
     parser::{Context, Parse},
 };
+use serde::Serialize;
 use snafu::prelude::*;
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 pub enum Error {
     #[snafu(display("Invalid format, expected <day><hour><minute>Z"))]
     InvalidFormat,
     #[snafu(display("No Zulu designator at the end"))]
     NoZuluDesignator,
     #[snafu(display("Not an integer: {source}"))]
-    NotAnInteger { source: ParseIntError },
+    NotAnInteger {
+        #[serde(skip)]
+        source: ParseIntError,
+    },
     #[snafu(display("Day not in range (1-31): {value}"))]
     DayNotInRange { value: u8 },
     #[snafu(display("Hour not in range (0-23): {value}"))]
@@ -27,7 +31,7 @@ pub enum Error {
 
 pub struct Parser;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Time {
     pub day: u8,
     pub hour: u8,

@@ -4,15 +4,15 @@ use crate::{
     Annotated,
     parser::{Context, Parse},
 };
+use serde::Serialize;
 use snafu::Snafu;
-
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 #[snafu(display("Invalid report kind, expected METAR/SPECI"))]
 pub struct InvalidReportKind;
 
 pub struct Parser;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 pub enum ReportKind {
     Metar,
     Speci,

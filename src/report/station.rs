@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::{cell::LazyCell, fmt::Display};
 
+use serde::Serialize;
 use snafu::Snafu;
 
 use crate::{
@@ -9,11 +10,11 @@ use crate::{
     parser::{Context, Parse},
 };
 
-#[derive(Debug, Snafu, PartialEq)]
+#[derive(Debug, Snafu, PartialEq, Serialize)]
 #[snafu(display("Unknown station"))]
 pub struct UnknownStation;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 pub struct Station<'a> {
     pub icao_code: &'a str,
     pub name: String,
