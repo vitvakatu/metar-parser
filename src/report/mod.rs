@@ -1,4 +1,6 @@
 use crate::Annotated;
+use frunk::Generic;
+use frunk::LabelledGeneric;
 
 pub mod clouds;
 pub mod kind;
@@ -23,7 +25,7 @@ pub use time::Time;
 pub use visibility::Visibility;
 pub use wind::Wind;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Generic, LabelledGeneric)]
 pub struct Report<'a> {
     pub origin: &'a str,
     pub kind: Annotated<'a, ReportKind>,
@@ -31,8 +33,8 @@ pub struct Report<'a> {
     pub time: Annotated<'a, Time>,
     pub wind: Annotated<'a, Wind>,
     pub visibility: Annotated<'a, Visibility>,
-    pub percipitation: Option<Annotated<'a, Percipitation>>,
-    pub clouds: Vec<Annotated<'a, CloudLayer>>,
+    pub percipitation: Annotated<'a, Percipitation>,
+    pub clouds: Annotated<'a, CloudLayer>,
     pub temperature: Annotated<'a, Temperature>,
     pub pressure: Annotated<'a, Pressure>,
 }

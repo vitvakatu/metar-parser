@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 snafu = "0.8"
+frunk = "0.4"
+frunk_core = "0.4"
 
 [dev-dependencies]
 pretty_assertions = "1.4"

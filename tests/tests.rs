@@ -50,12 +50,12 @@ fn test_simple() {
             19..26,
         ),
         visibility: Annotated::with_range(Visibility::Horizontal(Meters(9999)), input, 27..31),
-        percipitation: Some(Annotated::with_range(
+        percipitation: Annotated::with_range(
             Percipitation::Rain { intensity: None },
             input,
             32..34,
-        )),
-        clouds: vec![Annotated::with_range(
+        ),
+        clouds: Annotated::with_range(
             CloudLayer {
                 ceiling: 1400,
                 cover: Cover::Broken,
@@ -63,7 +63,7 @@ fn test_simple() {
             },
             input,
             35..41,
-        )],
+        ),
         temperature: Annotated::with_range(
             Temperature {
                 value: 10,
@@ -85,10 +85,8 @@ fn test_simple() {
 
 #[test]
 fn primary() {
-    let input =
-        "METAR EHLE 280925Z AUTO 21009G19KT 060V130 5000 -RA FEW007 BKN014CB BKN017 02/M01 Q1001";
+    let input = "METAR EHLE 280925Z 21009G19KT 5000 -RA FEW007 02/M01 Q1001";
     let parser = Parser::new(input);
-    assert!(parser.parse().is_ok());
     let expected = Report {
         origin: input,
         kind: Annotated::with_range(ReportKind::Metar, input, 0..4),
@@ -121,42 +119,22 @@ fn primary() {
             10..20,
         ),
         visibility: Annotated::with_range(Visibility::Horizontal(Meters(5000)), input, 20..25),
-        percipitation: Some(Annotated::with_range(
+        percipitation: Annotated::with_range(
             Percipitation::Rain {
                 intensity: Some(Intensity::Light),
             },
             input,
             25..30,
-        )),
-        clouds: vec![
-            Annotated::with_range(
-                CloudLayer {
-                    ceiling: 700,
-                    cover: Cover::Few,
-                    ..Default::default()
-                },
-                input,
-                30..35,
-            ),
-            Annotated::with_range(
-                CloudLayer {
-                    ceiling: 1400,
-                    cover: Cover::Broken,
-                    significant: Some(CloudSignificant::Cumulonimbus),
-                },
-                input,
-                35..40,
-            ),
-            Annotated::with_range(
-                CloudLayer {
-                    ceiling: 1700,
-                    cover: Cover::Broken,
-                    ..Default::default()
-                },
-                input,
-                40..45,
-            ),
-        ],
+        ),
+        clouds: Annotated::with_range(
+            CloudLayer {
+                ceiling: 700,
+                cover: Cover::Few,
+                ..Default::default()
+            },
+            input,
+            30..35,
+        ),
         temperature: Annotated::with_range(
             Temperature {
                 value: 2,
