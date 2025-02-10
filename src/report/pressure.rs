@@ -4,7 +4,10 @@ use crate::{
     units::Hectopascal,
 };
 use snafu::prelude::*;
-use std::num::ParseIntError;
+use std::{
+    fmt::{self, Display},
+    num::ParseIntError,
+};
 
 #[derive(Debug, Snafu, PartialEq)]
 pub enum Error {
@@ -14,15 +17,24 @@ pub enum Error {
     NotAnInteger { source: ParseIntError },
 }
 
+pub struct Parser;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Pressure {
     pub value: Hectopascal,
 }
 
-impl<'a> Parse<'a> for Annotated<'a, Pressure> {
+impl Display for Pressure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "QNH {} hpa", self.value.0)
+    }
+}
+
+impl<'a> Parse<'a> for Parser {
+    type Output = Annotated<'a, Pressure>;
     type Err = Annotated<'a, Error>;
 
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
         parse_pressure(context.current()).annotate(context)
     }
 }
@@ -42,8 +54,9 @@ mod tests {
     #[test]
     fn test_pressure() {
         let input = "Q1013";
+        let parser = Parser;
         let context = Context::new(input);
-        let pressure: Annotated<Pressure> = Parse::from_str(&context).unwrap();
+        let pressure: Annotated<Pressure> = parser.from_str(&context).unwrap();
         assert_eq!(pressure.inner.value, Hectopascal(1013));
     }
 }

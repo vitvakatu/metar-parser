@@ -4,6 +4,7 @@ use crate::{
     parser::{Context, Parse},
 };
 use snafu::prelude::*;
+use std::fmt::{self, Display};
 use std::num::ParseIntError;
 use std::ops::RangeInclusive;
 
@@ -29,10 +30,31 @@ pub struct Wind {
     pub variable: Option<RangeInclusive<u32>>,
 }
 
-impl<'a> Parse<'a> for Annotated<'a, Wind> {
+impl Display for Wind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "wind {}° {}KT", self.direction, self.speed.0)?;
+        if let Some(gust) = &self.gust {
+            write!(f, " gust {}KT", gust.0)?;
+        }
+        if let Some(variable) = &self.variable {
+            write!(
+                f,
+                " variable between {}° and {}°",
+                variable.start(),
+                variable.end()
+            )?;
+        }
+        Ok(())
+    }
+}
+
+pub struct Parser;
+
+impl<'a> Parse<'a> for Parser {
+    type Output = Annotated<'a, Wind>;
     type Err = Annotated<'a, Error>;
 
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
         parse_wind_internal(context.current()).annotate(context)
     }
 }
@@ -70,8 +92,9 @@ mod tests {
     #[test]
     fn test_wind() {
         let input = "18010KT";
+        let parser = Parser;
         let context = Context::new(input);
-        let wind: Annotated<Wind> = Parse::from_str(&context).unwrap();
+        let wind: Annotated<Wind> = parser.from_str(&context).unwrap();
         assert_eq!(
             wind,
             Annotated::new(

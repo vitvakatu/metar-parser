@@ -1,15 +1,18 @@
 use crate::Annotated;
 
-mod kind;
-mod percipitation;
-mod pressure;
-mod station;
-mod temperature;
-mod time;
-mod visibility;
-mod wind;
-mod clouds;
+pub mod clouds;
+pub mod kind;
+pub mod percipitation;
+pub mod pressure;
+pub mod station;
+pub mod temperature;
+pub mod time;
+pub mod visibility;
+pub mod wind;
 
+pub use clouds::CloudLayer;
+pub use clouds::CloudSignificant;
+pub use clouds::Cover;
 pub use kind::ReportKind;
 pub use percipitation::Intensity;
 pub use percipitation::Percipitation;
@@ -19,9 +22,6 @@ pub use temperature::Temperature;
 pub use time::Time;
 pub use visibility::Visibility;
 pub use wind::Wind;
-pub use clouds::CloudLayer;
-pub use clouds::Cover;
-pub use clouds::CloudSignificant;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Report<'a> {

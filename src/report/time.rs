@@ -1,4 +1,7 @@
-use std::num::ParseIntError;
+use std::{
+    fmt::{self, Display},
+    num::ParseIntError,
+};
 
 use crate::{
     Annotated, ResultExt,
@@ -22,6 +25,8 @@ pub enum Error {
     MinuteNotInRange { value: u8 },
 }
 
+pub struct Parser;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Time {
     pub day: u8,
@@ -29,10 +34,21 @@ pub struct Time {
     pub minute: u8,
 }
 
-impl<'a> Parse<'a> for Annotated<'a, Time> {
+impl Display for Time {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "day {}, {:02}:{:02} UTC",
+            self.day, self.hour, self.minute
+        )
+    }
+}
+
+impl<'a> Parse<'a> for Parser {
+    type Output = Annotated<'a, Time>;
     type Err = Annotated<'a, Error>;
 
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
         parse_date_time_internal(context.current()).annotate(context)
     }
 }
@@ -63,8 +79,9 @@ mod tests {
     #[test]
     fn test_time() {
         let input = "061235Z";
+        let parser = Parser;
         let context = Context::new(input);
-        let time: Annotated<Time> = Parse::from_str(&context).unwrap();
+        let time: Annotated<Time> = parser.from_str(&context).unwrap();
         assert_eq!(time, Annotated {
             inner: Time {
                 day: 6,
@@ -80,8 +97,9 @@ mod tests {
     #[test]
     fn test_time_invalid_day() {
         let input = "321235Z";
+        let parser = Parser;
         let context = Context::new(input);
-        let time: Result<Annotated<Time>, _> = Parse::from_str(&context);
+        let time: Result<Annotated<Time>, _> = parser.from_str(&context);
         assert!(time.is_err());
         assert_eq!(
             time.unwrap_err().inner.to_string(),
@@ -91,8 +109,9 @@ mod tests {
     #[test]
     fn test_time_missing_zulu() {
         let input = "061235L";
+        let parser = Parser;
         let context = Context::new(input);
-        let time: Result<Annotated<Time>, _> = Parse::from_str(&context);
+        let time: Result<Annotated<Time>, _> = parser.from_str(&context);
         assert!(time.is_err());
         assert_eq!(
             time.unwrap_err().inner.to_string(),

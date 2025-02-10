@@ -70,4 +70,8 @@ impl<'a, T> Annotated<'a, T> {
             end: range.end,
         }
     }
+
+    pub fn unit(&self) -> Annotated<'a, ()> {
+        Annotated::with_range((), self.origin, self.start..self.end)
+    }
 }

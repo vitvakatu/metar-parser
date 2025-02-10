@@ -1,3 +1,4 @@
+use std::fmt::{self, Display};
 use std::num::ParseIntError;
 
 use crate::ResultExt;
@@ -27,16 +28,29 @@ pub enum ParsingError {
     NotAnInteger { source: ParseIntError },
 }
 
+pub struct Parser;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Temperature {
     pub value: i32,
     pub dew_point: i32,
 }
 
-impl<'a> Parse<'a> for Annotated<'a, Temperature> {
+impl Display for Temperature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "temperature {}°C, dew point {}°C",
+            self.value, self.dew_point
+        )
+    }
+}
+
+impl<'a> Parse<'a> for Parser {
+    type Output = Annotated<'a, Temperature>;
     type Err = Annotated<'a, Error>;
 
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
         let mut parts = context.current().split('/');
         let value = parts
             .next()
@@ -81,8 +95,9 @@ mod tests {
     #[test]
     fn test_temperature() {
         let input = "10/05";
+        let parser = Parser;
         let context = Context::new(input);
-        let temperature: Annotated<Temperature> = Parse::from_str(&context).unwrap();
+        let temperature: Annotated<Temperature> = parser.from_str(&context).unwrap();
         assert_eq!(
             temperature,
             Annotated::new(

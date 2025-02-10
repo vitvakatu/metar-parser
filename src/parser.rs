@@ -1,11 +1,15 @@
-use std::{ops::Range, str::SplitWhitespace};
+use std::{
+    fmt::Write,
+    fmt::{self, Display},
+    ops::Range,
+    str::SplitWhitespace,
+};
+
+use snafu::ResultExt;
 
 use crate::{
     Annotated,
-    report::{
-        CloudLayer, Percipitation, Pressure, Report, ReportKind, Station, Temperature, Time,
-        Visibility, Wind,
-    },
+    report::{self, Report},
 };
 
 pub struct Parser<'a> {
@@ -17,38 +21,64 @@ impl<'a> Parser<'a> {
         Self { input }
     }
 
-    pub fn parse(&self) -> Result<Report<'a>, ()> {
+    pub fn describe(&self, mut output: impl Write) -> Result<(), snafu::Whatever> {
         let mut context = Context::new(self.input);
-        let kind: Annotated<ReportKind> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let station: Annotated<Station> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let time: Annotated<Time> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let wind: Annotated<Wind> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let visibility: Annotated<Visibility> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let percipitation: Annotated<Percipitation> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let clouds: Annotated<CloudLayer> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let temperature: Annotated<Temperature> = Parse::from_str(&context).unwrap();
-        context.advance();
-        let pressure: Annotated<Pressure> = Parse::from_str(&context).unwrap();
-        let report = Report {
-            kind,
-            station,
-            time,
-            wind,
-            visibility,
-            origin: self.input,
-            percipitation: Some(percipitation),
-            clouds: vec![clouds],
-            temperature,
-            pressure,
-        };
-        Ok(report)
+        let parsers: Vec<(
+            &'static str,
+            Box<
+                dyn Parse<
+                        Output = Box<dyn AnnotatedDisplay<'a>>,
+                        Err = Box<dyn AnnotatedDisplay<'a>>,
+                    >,
+            >,
+        )> = vec![
+            ("kind", EraseTypes::erase_types(report::kind::Parser)),
+            ("station", EraseTypes::erase_types(report::station::Parser)),
+            ("time", EraseTypes::erase_types(report::time::Parser)),
+            ("wind", EraseTypes::erase_types(report::wind::Parser)),
+            (
+                "visibility",
+                EraseTypes::erase_types(report::visibility::Parser),
+            ),
+            (
+                "percipitation",
+                EraseTypes::erase_types(report::percipitation::Parser),
+            ),
+            ("clouds", EraseTypes::erase_types(report::clouds::Parser)),
+            (
+                "temperature",
+                EraseTypes::erase_types(report::temperature::Parser),
+            ),
+            (
+                "pressure",
+                EraseTypes::erase_types(report::pressure::Parser),
+            ),
+        ];
+        let mut first = true;
+        loop {
+            for (_, parser) in parsers.iter() {
+                let result = parser.from_str(&context);
+                if let Ok(result) = result {
+                    if !first {
+                        output
+                            .write_str(", ")
+                            .with_whatever_context(|_| "Failed to write to output")?;
+                    }
+                    first = false;
+                    output
+                        .write_fmt(format_args!("{}", DisplayHelper(result)))
+                        .with_whatever_context(|_| "Failed to write to output")?;
+                }
+            }
+            if !context.advance() {
+                break;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn parse(&self) -> Result<Report<'a>, ()> {
+        todo!()
     }
 }
 
@@ -92,9 +122,95 @@ impl<'a> Context<'a> {
     }
 }
 
-pub(crate) trait Parse<'a>: Sized {
+pub(crate) trait Parse<'a> {
+    type Output;
     type Err;
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err>;
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err>;
+}
+
+pub(crate) trait EraseTypes<'a> {
+    fn erase_types(
+        self,
+    ) -> Box<
+        dyn Parse<
+                'a,
+                Output = Box<dyn AnnotatedDisplay<'a> + 'a>,
+                Err = Box<dyn AnnotatedDisplay<'a> + 'a>,
+            > + 'a,
+    >;
+}
+
+impl<
+    'a,
+    P: Parse<'a, Output = T, Err = E> + 'a,
+    T: AnnotatedDisplay<'a> + 'a,
+    E: AnnotatedDisplay<'a> + 'a,
+> EraseTypes<'a> for P
+{
+    fn erase_types(
+        self,
+    ) -> Box<
+        dyn Parse<
+                'a,
+                Output = Box<dyn AnnotatedDisplay<'a> + 'a>,
+                Err = Box<dyn AnnotatedDisplay<'a> + 'a>,
+            > + 'a,
+    > {
+        Box::new(ErasedParser { inner: self })
+    }
+}
+
+struct ErasedParser<P> {
+    inner: P,
+}
+impl<
+    'a,
+    T: AnnotatedDisplay<'a> + 'a,
+    E: AnnotatedDisplay<'a> + 'a,
+    P: Parse<'a, Output = T, Err = E>,
+> Parse<'a> for ErasedParser<P>
+{
+    type Output = Box<dyn AnnotatedDisplay<'a> + 'a>;
+    type Err = Box<dyn AnnotatedDisplay<'a> + 'a>;
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
+        match self.inner.from_str(context) {
+            Ok(output) => Ok(Box::new(output)),
+            Err(err) => Err(Box::new(err)),
+        }
+    }
+}
+
+pub trait AnnotatedDisplay<'a> {
+    fn display(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result;
+    fn annotation(&self) -> Annotated<'a, ()>;
+}
+
+impl<'a, T: Display> AnnotatedDisplay<'a> for Annotated<'a, T> {
+    fn display(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&self.inner, fmt)
+    }
+
+    fn annotation(&self) -> Annotated<'a, ()> {
+        Annotated::unit(self)
+    }
+}
+
+impl<'a, T: AnnotatedDisplay<'a> + ?Sized> AnnotatedDisplay<'a> for Box<T> {
+    fn display(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        AnnotatedDisplay::display(&**self, fmt)
+    }
+
+    fn annotation(&self) -> Annotated<'a, ()> {
+        AnnotatedDisplay::annotation(&**self)
+    }
+}
+
+pub struct DisplayHelper<T>(T);
+
+impl<'a, T: AnnotatedDisplay<'a>> Display for DisplayHelper<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.display(f)
+    }
 }
 
 #[cfg(test)]

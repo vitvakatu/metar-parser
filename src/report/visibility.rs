@@ -1,4 +1,7 @@
-use std::num::ParseIntError;
+use std::{
+    fmt::{self, Display},
+    num::ParseIntError,
+};
 
 use crate::{
     Annotated, ResultExt,
@@ -20,10 +23,22 @@ pub enum Visibility {
     Horizontal(Meters),
 }
 
-impl<'a> Parse<'a> for Annotated<'a, Visibility> {
+impl Display for Visibility {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Horizontal(distance) => write!(f, "visibility {} m", distance.0)?,
+        }
+        Ok(())
+    }
+}
+
+pub struct Parser;
+
+impl<'a> Parse<'a> for Parser {
+    type Output = Annotated<'a, Visibility>;
     type Err = Annotated<'a, Error>;
 
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
         parse_visibility(context.current()).annotate(context)
     }
 }
@@ -41,8 +56,9 @@ mod tests {
     #[test]
     fn test_visibility() {
         let input = "1000";
+        let parser = Parser;
         let context = Context::new(input);
-        let visibility: Annotated<Visibility> = Parse::from_str(&context).unwrap();
+        let visibility: Annotated<Visibility> = parser.from_str(&context).unwrap();
         assert_eq!(
             visibility,
             Annotated::new(Visibility::Horizontal(Meters(1000)), input)

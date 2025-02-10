@@ -2,6 +2,18 @@ use parser::prelude::*;
 use pretty_assertions::assert_eq;
 
 #[test]
+fn test_dynamic_simple() {
+    let input = "METAR ULLI 280900Z 10005KT 9999 RA BKN014 10/05 Q1005";
+    let parser = Parser::new(input);
+    let mut destination = String::new();
+    parser.describe(&mut destination).unwrap();
+    assert_eq!(
+        destination,
+        "METAR, ULLI (Pulkovo Airport, Russia), day 28, 09:00 UTC, wind 100° 5KT, visibility 9999 m, rain, broken clouds at 1400ft, temperature 10°C, dew point 5°C, QNH 1005 hpa"
+    );
+}
+
+#[test]
 fn test_simple() {
     let input = "METAR ULLI 280900Z 10005KT 9999 RA BKN014 10/05 Q1005";
     let parser = Parser::new(input);

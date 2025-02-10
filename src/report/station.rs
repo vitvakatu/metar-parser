@@ -1,5 +1,6 @@
-use std::cell::LazyCell;
 use std::collections::HashMap;
+use std::fmt;
+use std::{cell::LazyCell, fmt::Display};
 
 use snafu::Snafu;
 
@@ -19,6 +20,8 @@ pub struct Station<'a> {
     pub country: String,
 }
 
+pub struct Parser;
+
 pub const KNOWN_STATIONS: LazyCell<HashMap<&'static str, Station>> = LazyCell::new(|| {
     HashMap::from([
         ("ULLI", Station {
@@ -34,10 +37,17 @@ pub const KNOWN_STATIONS: LazyCell<HashMap<&'static str, Station>> = LazyCell::n
     ])
 });
 
-impl<'a> Parse<'a> for Annotated<'a, Station<'a>> {
+impl Display for Station<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} ({}, {})", self.icao_code, self.name, self.country)
+    }
+}
+
+impl<'a> Parse<'a> for Parser {
+    type Output = Annotated<'a, Station<'a>>;
     type Err = Annotated<'a, UnknownStation>;
 
-    fn from_str(context: &Context<'a>) -> Result<Self, Self::Err> {
+    fn from_str(&self, context: &Context<'a>) -> Result<Self::Output, Self::Err> {
         let stations = KNOWN_STATIONS;
         let station = stations.get(context.current());
         if let Some(station) = station {
@@ -54,8 +64,9 @@ mod tests {
     #[test]
     fn test_station_ulli() {
         let input = "ULLI";
+        let parser = Parser;
         let context = Context::new(input);
-        let station: Annotated<Station> = Parse::from_str(&context).unwrap();
+        let station: Annotated<Station> = parser.from_str(&context).unwrap();
         assert_eq!(station, Annotated {
             inner: Station {
                 icao_code: input,
@@ -71,8 +82,9 @@ mod tests {
     #[test]
     fn test_station_ehle() {
         let input = "EHLE";
+        let parser = Parser;
         let context = Context::new(input);
-        let station: Annotated<Station> = Parse::from_str(&context).unwrap();
+        let station: Annotated<Station> = parser.from_str(&context).unwrap();
         assert_eq!(station, Annotated {
             inner: Station {
                 icao_code: input,
@@ -88,8 +100,9 @@ mod tests {
     #[test]
     fn test_station_unknown() {
         let input = "ZZZZ";
+        let parser = Parser;
         let context = Context::new(input);
-        let station: Result<Annotated<Station>, _> = Parse::from_str(&context);
+        let station: Result<Annotated<Station>, _> = parser.from_str(&context);
         assert!(station.is_err());
         assert_eq!(station.unwrap_err(), Annotated {
             inner: UnknownStation,
