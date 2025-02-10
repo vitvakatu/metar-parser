@@ -1,0 +1,11 @@
+[package]
+name = "web-interface"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+parser = { path = ".." }
+yew = { git = "https://github.com/yewstack/yew/", features = [
+    "csr",
+], rev = "69e3b5f" }
+web-sys = { version = "0.3.65", features = ["console", "HtmlInputElement"] }
